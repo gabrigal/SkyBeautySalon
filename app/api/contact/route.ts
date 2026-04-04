@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 interface ContactBody {
   name: string
   email: string
@@ -66,6 +64,8 @@ export async function POST(req: NextRequest) {
   if (!toEmail) {
     return NextResponse.json({ success: false, error: 'Failed to send message. Please try again.' }, { status: 500 })
   }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
 
   const safeName    = escapeHtml(name.trim())
   const safeEmail   = escapeHtml(email.trim())
