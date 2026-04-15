@@ -1,0 +1,70 @@
+{
+  "name": "Sky Beauty Availability Check",
+  "nodes": [
+    {
+      "id": "av1-webhook",
+      "name": "Availability Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "sky-beauty-availability",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "webhookId": "sky-beauty-availability-001"
+    },
+    {
+      "id": "av2-freebusy",
+      "name": "FreeBusy API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "k4ztEcNm5Das5npT",
+          "name": "Google Calendar account 2"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/calendar/v3/freeBusy",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "timeMin": "={{ $json.query.date + 'T00:00:00-05:00' }}",
+          "timeMax": "={{ $json.query.date + 'T23:59:59-05:00' }}",
+          "items": [{"id": "primary"}]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "av3-code",
+      "name": "Calculate Taken Slots",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const SLOT_HOURS = {\n  '9:00 AM': 9, '10:00 AM': 10, '11:00 AM': 11,\n  '12:00 PM': 12, '1:00 PM': 13, '2:00 PM': 14,\n  '3:00 PM': 15, '4:00 PM': 16, '5:00 PM': 17, '6:00 PM': 18\n};\n\nconst data = $input.first().json;\nconst busyPeriods = data.calendars?.primary?.busy || [];\nconst taken = [];\n\nfor (const period of busyPeriods) {\n  const sHour = parseInt(period.start.slice(11, 13));\n  const eHour = parseInt(period.end.slice(11, 13));\n  const eMin  = parseInt(period.end.slice(14, 16));\n  const eHourCeil = eHour + (eMin > 0 ? 1 : 0);\n\n  for (const [slot, h] of Object.entries(SLOT_HOURS)) {\n    if (h >= sHour && h < eHourCeil) taken.push(slot);\n  }\n}\n\nreturn [{ json: { taken: [...new Set(taken)] } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Availability Webhook": {
+      "main": [[{"node": "FreeBusy API", "type": "main", "index": 0}]]
+    },
+    "FreeBusy API": {
+      "main": [[{"node": "Calculate Taken Slots", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
