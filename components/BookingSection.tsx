@@ -84,6 +84,12 @@ const TIME_SLOTS = [
 ];
 
 
+const STYLISTS = [
+  { id: "joann", label: "Joann", callOnly: false },
+  { id: "luis",  label: "Luis",  callOnly: false },
+  { id: "rajni", label: "Rajni", callOnly: true,  phone: "(347) 840-2053", specialty: "Threading" },
+];
+
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -95,6 +101,7 @@ const N8N_AVAILABILITY = "https://gabrigal.app.n8n.cloud/webhook/sky-beauty-avai
 
 interface BookingState {
   service: string | null;
+  stylist: string | null;
   date: Date | null;
   time: string | null;
   customerName: string;
@@ -103,7 +110,7 @@ interface BookingState {
 }
 
 function StepIndicator({ step }: { step: number }) {
-  const steps = ["Service", "Date", "Time", "Confirm"];
+  const steps = ["Service", "Stylist", "Date", "Time", "Confirm"];
   return (
     <div className="flex items-center justify-center gap-0 mb-12">
       {steps.map((label, i) => (
@@ -252,6 +259,91 @@ function ServicePicker({
   );
 }
 
+function StylistPicker({
+  selected,
+  onSelect,
+}: {
+  selected: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const selectedStylist = STYLISTS.find(s => s.id === selected);
+
+  return (
+    <div className="max-w-sm mx-auto">
+      <h3 className="font-serif text-2xl font-semibold text-charcoal mb-2 text-center">
+        Choose your stylist
+      </h3>
+      <p className="text-sm text-warm-gray font-sans text-center mb-8">
+        Who would you like to book with?
+      </p>
+      <div className="space-y-3">
+        {STYLISTS.map((stylist) => (
+          <motion.button
+            key={stylist.id}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onSelect(stylist.id)}
+            className={clsx(
+              "w-full flex items-center justify-between px-6 py-5 rounded-2xl border text-left transition-all duration-200",
+              selected === stylist.id
+                ? stylist.callOnly
+                  ? "border-gold bg-gold/10 text-charcoal shadow-md"
+                  : "border-charcoal bg-charcoal text-cream shadow-md"
+                : "border-light-gray bg-white hover:border-gold hover:shadow-sm text-charcoal"
+            )}
+          >
+            <div>
+              <span className="font-serif text-lg font-semibold block">{stylist.label}</span>
+              {stylist.callOnly && (
+                <span className="text-xs font-sans text-warm-gray mt-0.5 block">
+                  {stylist.specialty} · Call to book
+                </span>
+              )}
+            </div>
+            {selected === stylist.id && (
+              stylist.callOnly ? (
+                <svg className="w-5 h-5 text-gold flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-gold flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              )
+            )}
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Call-only notice for Rajni */}
+      <AnimatePresence>
+        {selectedStylist?.callOnly && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 bg-gold/10 border border-gold/30 rounded-2xl p-5 text-center"
+          >
+            <p className="font-sans text-sm text-charcoal font-medium mb-1">
+              Rajni specializes in threading and is booked by phone only.
+            </p>
+            <a
+              href={`tel:${selectedStylist.phone?.replace(/\D/g, "")}`}
+              className="inline-flex items-center gap-2 mt-3 px-6 py-3 bg-charcoal text-cream text-xs tracking-[0.2em] uppercase font-sans rounded-full hover:bg-gold transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+              {selectedStylist.phone}
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function CalendarPicker({
   selected,
   onSelect,
@@ -357,7 +449,7 @@ function CalendarPicker({
                   "aspect-square flex items-center justify-center rounded-full text-sm font-sans transition-all duration-200 mx-auto w-9 h-9",
                   isPast && "text-light-gray cursor-not-allowed",
                   !isPast && !isSelected && "hover:bg-gold-light text-charcoal cursor-pointer",
-                  isToday && !isSelected && "border border-gold text-gold font-medium",
+                  isToday && !isSelected && "border-2 border-charcoal text-charcoal font-semibold",
                   isSelected && "bg-charcoal text-cream font-medium shadow-md"
                 )}
               >
@@ -452,6 +544,7 @@ function ConfirmStep({
   submitting: boolean;
 }) {
   const service = ALL_SERVICES.find((s) => s.id === booking.service);
+  const stylistLabel = STYLISTS.find((s) => s.id === booking.stylist)?.label ?? "";
   const dateStr = booking.date?.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -515,11 +608,12 @@ function ConfirmStep({
         <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-warm-gray mb-3">Appointment Summary</p>
         <div className="space-y-0">
           {[
-            { label: "Service", value: service?.label || "" },
-            { label: "Date", value: dateStr || "" },
-            { label: "Time", value: booking.time || "" },
-            { label: "Price", value: service?.price || "" },
-            { label: "Duration", value: service?.duration || "" },
+            { label: "Stylist",   value: stylistLabel },
+            { label: "Service",   value: service?.label || "" },
+            { label: "Date",      value: dateStr || "" },
+            { label: "Time",      value: booking.time || "" },
+            { label: "Price",     value: service?.price || "" },
+            { label: "Duration",  value: service?.duration || "" },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center justify-between py-2.5 border-b border-light-gray last:border-0">
               <span className="text-xs tracking-[0.15em] uppercase font-sans text-warm-gray">{label}</span>
@@ -609,6 +703,7 @@ export default function BookingSection() {
   const [step, setStep] = useState(1);
   const [booking, setBooking] = useState<BookingState>({
     service: null,
+    stylist: null,
     date: null,
     time: null,
     customerName: "",
@@ -637,16 +732,19 @@ export default function BookingSection() {
   }, []);
 
   const handleNext = useCallback(() => {
-    if (step === 2 && booking.date) {
+    if (step === 3 && booking.date) {
       fetchAvailability(booking.date);
     }
     setStep((s) => s + 1);
   }, [step, booking.date, fetchAvailability]);
 
+  const selectedStylistData = STYLISTS.find(s => s.id === booking.stylist);
+
   const canAdvance =
     (step === 1 && !!booking.service) ||
-    (step === 2 && !!booking.date) ||
-    (step === 3 && !!booking.time);
+    (step === 2 && !!booking.stylist && !selectedStylistData?.callOnly) ||
+    (step === 3 && !!booking.date) ||
+    (step === 4 && !!booking.time);
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -674,6 +772,7 @@ export default function BookingSection() {
           customerName:  booking.customerName,
           customerEmail: booking.customerEmail,
           customerPhone: booking.customerPhone || "Not provided",
+          stylist:       STYLISTS.find(s => s.id === booking.stylist)?.label ?? booking.stylist,
           service:       service?.label ?? booking.service,
           date:          dateStr,
           dateISO,
@@ -694,7 +793,7 @@ export default function BookingSection() {
 
   const reset = () => {
     setStep(1);
-    setBooking({ service: null, date: null, time: null, customerName: "", customerEmail: "", customerPhone: "" });
+    setBooking({ service: null, stylist: null, date: null, time: null, customerName: "", customerEmail: "", customerPhone: "" });
     setConfirmed(false);
     setSubmitError(null);
     setTakenSlots(new Set());
@@ -770,12 +869,18 @@ export default function BookingSection() {
                     />
                   )}
                   {step === 2 && (
+                    <StylistPicker
+                      selected={booking.stylist}
+                      onSelect={(id) => setBooking((b) => ({ ...b, stylist: id }))}
+                    />
+                  )}
+                  {step === 3 && (
                     <CalendarPicker
                       selected={booking.date}
                       onSelect={(date) => setBooking((b) => ({ ...b, date }))}
                     />
                   )}
-                  {step === 3 && (
+                  {step === 4 && (
                     <TimePicker
                       selected={booking.time}
                       onSelect={(time) => setBooking((b) => ({ ...b, time }))}
@@ -784,7 +889,7 @@ export default function BookingSection() {
                       selectedDate={booking.date}
                     />
                   )}
-                  {step === 4 && (
+                  {step === 5 && (
                     <ConfirmStep
                       booking={booking}
                       onBookingChange={(fields) => setBooking(b => ({ ...b, ...fields }))}
@@ -801,7 +906,7 @@ export default function BookingSection() {
               )}
 
               {/* Navigation */}
-              {step < 4 && (
+              {step < 5 && (
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-light-gray">
                   <button
                     onClick={() => setStep((s) => Math.max(1, s - 1))}
@@ -829,7 +934,7 @@ export default function BookingSection() {
                         : "bg-light-gray text-warm-gray cursor-not-allowed"
                     )}
                   >
-                    {step === 3 ? "Review" : "Continue"}
+                    {step === 4 ? "Review" : "Continue"}
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>

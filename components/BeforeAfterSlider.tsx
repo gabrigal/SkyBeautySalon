@@ -6,39 +6,47 @@ import Image from "next/image";
 
 // Using real Sky Beauty brand photos for gallery
 const galleryItems = [
-  { id: 1, label: "Caramel Balayage",    service: "Color & Balayage", image: "/brand/hair3.webp" },
-  { id: 2, label: "Highlighted Layers",  service: "Highlights",       image: "/brand/hair1.webp" },
-  { id: 3, label: "Sleek Brunette",      service: "Keratin Treatment", image: "/brand/hair4.jpg"  },
-  { id: 4, label: "Styled Waves",        service: "Cut & Style",      image: "/brand/hair5.webp" },
-  { id: 5, label: "Balayage in Progress", service: "Color & Balayage", image: "/brand/hair7.jpg"  },
-  { id: 6, label: "Signature Blowout",   service: "Blow Dry",         image: "/brand/hair2.webp" },
+  { id: 1,  label: "Caramel Balayage",      service: "Color & Balayage",   image: "/brand/hair3.webp"  },
+  { id: 2,  label: "Highlighted Layers",    service: "Highlights",         image: "/brand/hair1.webp"  },
+  { id: 3,  label: "Sleek Brunette",        service: "Keratin Treatment",  image: "/brand/hair4.jpg"   },
+  { id: 4,  label: "Styled Waves",          service: "Cut & Style",        image: "/brand/hair5.webp"  },
+  { id: 5,  label: "Signature Blowout",     service: "Blow Dry",           image: "/brand/hair2.webp"  },
+  { id: 6,  label: "Fresh Color",           service: "Color",              image: "/brand/hair6.webp"  },
+  { id: 7,  label: "Red with Highlights",   service: "Color & Highlights", image: "/brand/work2.jpg"   },
+  { id: 8,  label: "Auburn Highlights",     service: "Color & Highlights", image: "/brand/work3.jpg"   },
+  { id: 9,  label: "Balayage Curls",        service: "Color & Balayage",   image: "/brand/work5.jpg"   },
+  { id: 10, label: "Dark Balayage",         service: "Color & Balayage",   image: "/brand/work6.jpg"   },
+  { id: 11, label: "Highlights & Waves",    service: "Highlights",         image: "/brand/work7.jpg"   },
+  { id: 12, label: "Color in Progress",     service: "Color",              image: "/brand/work8.jpg"   },
 ];
 
 // Before/after pairs using real hair photos
 const transformations = [
   {
     id: 1,
-    label: "Balayage Transformation",
-    service: "Color & Balayage",
-    before: "/brand/hair7.jpg",
-    after: "/brand/hair3.webp",
+    label: "Highlights Transformation",
+    service: "Color & Highlights",
+    before: "/brand/before1.jpg",
+    after: "/brand/after1.jpg",
   },
   {
     id: 2,
-    label: "Keratin Smoothing",
-    service: "Keratin Treatment",
-    before: "/brand/hair2.webp",
-    after: "/brand/hair4.jpg",
+    label: "Red Color",
+    service: "Color",
+    before: "/brand/work1.jpg",
+    after: "/brand/work3.jpg",
   },
 ];
 
 function SliderCard({
   transformation,
+  fit = "contain",
 }: {
   transformation: (typeof transformations)[0];
+  fit?: "cover" | "contain";
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [sliderX, setSliderX] = useState(50);
+  const [sliderX, setSliderX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -80,35 +88,35 @@ function SliderCard({
       onMouseLeave={handleMouseLeave}
       onTouchMove={(e) => setSliderX(getPercent(e.touches[0].clientX))}
     >
-      {/* After */}
-      <div className="w-full aspect-[3/4] relative">
+      {/* After (base — left side, always visible underneath) */}
+      <div className={`w-full aspect-[3/4] relative ${fit === "cover" ? "" : "bg-gray-950"}`}>
         <Image
           src={transformation.after}
           alt={`${transformation.label} after`}
           fill
-          className="object-cover"
+          className={`object-${fit}`}
           draggable={false}
         />
-        <div className="absolute bottom-4 right-4 px-3 py-1 glass-dark rounded-full">
+        <div className="absolute bottom-4 left-4 px-3 py-1 glass-dark rounded-full">
           <span className="text-[9px] tracking-[0.25em] uppercase font-sans text-white">
             After
           </span>
         </div>
       </div>
 
-      {/* Before (clipped) */}
+      {/* Before (clipped — right side, drag left to reveal After) */}
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ clipPath: `inset(0 ${100 - sliderX}% 0 0)` }}
+        className={`absolute inset-0 overflow-hidden ${fit === "cover" ? "" : "bg-gray-950"}`}
+        style={{ clipPath: `inset(0 0 0 ${sliderX}%)` }}
       >
         <Image
           src={transformation.before}
           alt={`${transformation.label} before`}
           fill
-          className="object-cover grayscale"
+          className={`object-${fit}`}
           draggable={false}
         />
-        <div className="absolute bottom-4 left-4 px-3 py-1 glass-dark rounded-full">
+        <div className="absolute bottom-4 right-4 px-3 py-1 glass-dark rounded-full">
           <span className="text-[9px] tracking-[0.25em] uppercase font-sans text-white">
             Before
           </span>
@@ -179,7 +187,7 @@ export default function BeforeAfterSlider() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-sm font-sans font-light text-gray-600"
           >
-            Drag to compare · Browse our portfolio below
+            Drag to reveal After · Browse our portfolio below
           </motion.p>
         </div>
 
@@ -195,7 +203,7 @@ export default function BeforeAfterSlider() {
               <p className="font-serif text-lg font-medium text-white mb-4">
                 {t.label}
               </p>
-              <SliderCard transformation={t} />
+              <SliderCard transformation={t} fit={t.id === 1 ? "cover" : "contain"} />
             </motion.div>
           ))}
         </motion.div>
@@ -206,7 +214,7 @@ export default function BeforeAfterSlider() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-3"
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"
         >
           {galleryItems.map((item, i) => (
             <motion.div

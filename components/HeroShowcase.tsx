@@ -54,8 +54,8 @@ export default function HeroShowcase() {
         {/* Primary image */}
         <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden">
           <Image
-            src="/brand/hair3.webp"
-            alt="Sky Beauty — Caramel Balayage"
+            src="/brand/work6.jpg"
+            alt="Sky Beauty — Dark Balayage"
             fill
             priority
             className="object-cover"
@@ -114,8 +114,8 @@ export default function HeroShowcase() {
           className="absolute -right-6 top-[22%] w-28 h-36 rounded-2xl overflow-hidden border-2 border-ink shadow-2xl shadow-black/40"
         >
           <Image
-            src="/brand/hair4.jpg"
-            alt="Sky Beauty styling"
+            src="/brand/storefront.webp"
+            alt="Sky Beauty Salon storefront"
             fill
             className="object-cover"
           />
@@ -178,9 +178,9 @@ export default function HeroShowcase() {
         className="flex gap-3 mt-10 px-1"
       >
         {[
-          { src: "/brand/hair4.jpg",  label: "Keratin" },
-          { src: "/brand/hair1.webp", label: "Balayage" },
-          { src: "/brand/hair7.jpg",  label: "Color" },
+          { src: "/brand/work5.jpg",  label: "Balayage" },
+          { src: "/brand/work2.jpg",  label: "Color" },
+          { src: "/brand/after1.jpg", label: "Highlights" },
         ].map((item) => (
           <div key={item.label} className="flex-1 flex flex-col gap-1.5">
             <div className="relative aspect-square rounded-xl overflow-hidden">

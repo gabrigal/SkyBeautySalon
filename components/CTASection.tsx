@@ -93,6 +93,30 @@ export default function CTASection() {
           </a>
         </motion.div>
 
+        {/* Salon photo strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4, duration: 0.7 }}
+          className="flex gap-4 justify-center mt-12 mb-2"
+        >
+          {[
+            { src: "/brand/storefront.webp", label: "Our salon" },
+            { src: "/brand/inside.webp",     label: "Inside the studio" },
+            { src: "/brand/storeinside.webp", label: "The floor" },
+          ].map((photo) => (
+            <div key={photo.src} className="relative w-28 h-20 sm:w-40 sm:h-28 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg shadow-ink/10">
+              <Image
+                src={photo.src}
+                alt={photo.label}
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+              />
+            </div>
+          ))}
+        </motion.div>
+
         {/* Trust badges */}
         <motion.div
           initial={{ opacity: 0 }}
