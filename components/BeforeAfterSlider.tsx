@@ -148,6 +148,9 @@ function SliderCard({
 export default function BeforeAfterSlider() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [activeId, setActiveId] = useState(transformations[0].id);
+
+  const activeTransformation = transformations.find(t => t.id === activeId)!;
 
   return (
     <section id="transformations" className="section-pad bg-ink-mid">
@@ -191,8 +194,8 @@ export default function BeforeAfterSlider() {
           </motion.p>
         </div>
 
-        {/* Before/After sliders */}
-        <motion.div ref={ref} className="grid md:grid-cols-2 gap-6 mb-16 max-w-3xl mx-auto">
+        {/* ── Before/After: desktop side-by-side ── */}
+        <motion.div ref={ref} className="hidden md:grid md:grid-cols-2 gap-6 mb-16 max-w-3xl mx-auto">
           {transformations.map((t, i) => (
             <motion.div
               key={t.id}
@@ -200,21 +203,53 @@ export default function BeforeAfterSlider() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
             >
-              <p className="font-serif text-lg font-medium text-white mb-4">
-                {t.label}
-              </p>
+              <p className="font-serif text-lg font-medium text-white mb-4">{t.label}</p>
               <SliderCard transformation={t} fit={t.id === 1 ? "cover" : "contain"} />
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Portfolio grid */}
+        {/* ── Before/After: mobile tab selector ── */}
+        <div className="md:hidden mb-16">
+          {/* Tab buttons */}
+          <div className="flex gap-2 mb-5 justify-center">
+            {transformations.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setActiveId(t.id)}
+                className={`px-5 py-2.5 rounded-full text-xs tracking-[0.15em] uppercase font-sans transition-all duration-300 ${
+                  activeId === t.id
+                    ? "bg-white text-ink font-medium shadow-lg"
+                    : "border border-white/20 text-gray-400 hover:border-white/50"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Active slider */}
+          <motion.div
+            key={activeId}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="max-w-sm mx-auto"
+          >
+            <SliderCard
+              transformation={activeTransformation}
+              fit={activeTransformation.id === 1 ? "cover" : "contain"}
+            />
+          </motion.div>
+        </div>
+
+        {/* ── Gallery: desktop grid ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"
+          className="hidden md:grid md:grid-cols-6 gap-3"
         >
           {galleryItems.map((item, i) => (
             <motion.div
@@ -240,12 +275,40 @@ export default function BeforeAfterSlider() {
           ))}
         </motion.div>
 
+        {/* ── Gallery: mobile swipe carousel ── */}
+        <div className="md:hidden -mx-6">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-6 pb-4 scrollbar-hide">
+            {galleryItems.map((item) => (
+              <div
+                key={item.id}
+                className="snap-center flex-shrink-0 w-[72vw] relative aspect-[3/4] rounded-xl overflow-hidden"
+              >
+                <Image
+                  src={item.image}
+                  alt={item.label}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <p className="font-serif text-white text-sm font-medium">{item.label}</p>
+                  <p className="text-[10px] tracking-[0.15em] uppercase text-gray-400 font-sans">{item.service}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Scroll hint */}
+          <p className="text-center mt-3 text-[10px] font-sans text-gray-700 tracking-widest uppercase">
+            Swipe to browse
+          </p>
+        </div>
+
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6 }}
-          className="text-center mt-8 text-xs font-sans font-light text-gray-700 tracking-widest uppercase"
+          className="hidden md:block text-center mt-8 text-xs font-sans font-light text-gray-700 tracking-widest uppercase"
         >
           ← Drag sliders to compare →
         </motion.p>
