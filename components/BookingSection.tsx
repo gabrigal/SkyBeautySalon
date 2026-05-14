@@ -485,7 +485,8 @@ function TimePicker({
     selectedDate.getFullYear() === now.getFullYear() &&
     selectedDate.getMonth() === now.getMonth() &&
     selectedDate.getDate() === now.getDate();
-  const currentHour = now.getHours();
+  // Block any slot within 30 minutes of now
+  const currentMinutes = now.getHours() * 60 + now.getMinutes() + 30;
 
   return (
     <div className="max-w-md mx-auto">
@@ -498,7 +499,7 @@ function TimePicker({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {TIME_SLOTS.map((t) => {
           const booked = takenSlots.has(t);
-          const past = isToday && TIME_TO_HOUR[t] <= currentHour;
+          const past = isToday && TIME_TO_HOUR[t] * 60 <= currentMinutes;
           const disabled = booked || past || slotsLoading;
 
           return (
