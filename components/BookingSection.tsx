@@ -720,12 +720,13 @@ export default function BookingSection() {
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsLoading, setSlotsLoading] = useState(false);
 
-  const fetchAvailability = useCallback(async (date: Date) => {
+  const fetchAvailability = useCallback(async (date: Date, stylistId: string | null) => {
     setSlotsLoading(true);
     const pad = (n: number) => String(n).padStart(2, "0");
     const dateISO = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const stylistParam = stylistId ? `&stylist=${stylistId}` : "";
     try {
-      const res = await fetch(`${N8N_AVAILABILITY}?date=${dateISO}`);
+      const res = await fetch(`${N8N_AVAILABILITY}?date=${dateISO}${stylistParam}`);
       const data = await res.json();
       setTakenSlots(new Set(data.taken || []));
     } catch {
@@ -737,7 +738,7 @@ export default function BookingSection() {
 
   const handleNext = useCallback(() => {
     if (step === 3 && booking.date) {
-      fetchAvailability(booking.date);
+      fetchAvailability(booking.date, booking.stylist);
     }
     setStep((s) => s + 1);
   }, [step, booking.date, fetchAvailability]);
