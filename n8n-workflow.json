@@ -90,7 +90,7 @@
         "operation": "create",
         "calendarId": {
           "__rl": true,
-          "value": "primary",
+          "value": "537e7bf6167dbc80c1c0d421dc92bfc2c910c77008c8a008c4f1198e98d084a8@group.calendar.google.com",
           "mode": "id"
         },
         "start": "={{ $json.startISO }}",

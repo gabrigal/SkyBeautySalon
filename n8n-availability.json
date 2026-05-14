@@ -39,7 +39,7 @@
         "body": {
           "timeMin": "={{ $json.query.date + 'T00:00:00-05:00' }}",
           "timeMax": "={{ $json.query.date + 'T23:59:59-05:00' }}",
-          "items": [{"id": "primary"}]
+          "items": [{"id": "537e7bf6167dbc80c1c0d421dc92bfc2c910c77008c8a008c4f1198e98d084a8@group.calendar.google.com"}]
         },
         "options": {}
       }
