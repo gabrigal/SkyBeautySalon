@@ -10,7 +10,7 @@ const SERVICE_CATEGORIES = [
     label: "Hair Cut & Style",
     priceRange: "$30 – $85",
     services: [
-      { id: "womens-cut",    label: "Women's Haircut",            price: "$65",         duration: "60 min",  durationMins: 60  },
+      { id: "womens-cut",    label: "Women's Haircut",            price: "$70",         duration: "60 min",  durationMins: 60  },
       { id: "mens-cut",      label: "Men's Haircut",              price: "$35",         duration: "30 min",  durationMins: 30  },
       { id: "childrens-cut", label: "Children's Haircut",         price: "$30",         duration: "30 min",  durationMins: 30  },
       { id: "blow-dry",      label: "Blow Dry",                   price: "$40",         duration: "45 min",  durationMins: 45  },
@@ -64,7 +64,7 @@ const SERVICE_CATEGORIES = [
     services: [
       { id: "moroccan",      label: "Moroccan Oil Treatment",     price: "$30",         duration: "45 min",  durationMins: 45  },
       { id: "aveda",         label: "Aveda Dry or Damage Remedy", price: "$30 – $45",   duration: "45 min",  durationMins: 45  },
-      { id: "b3-pkg",        label: "B3 Treatment / B3 Package",  price: "$40",         duration: "60 min",  durationMins: 60  },
+      { id: "b3-pkg",        label: "B3 Treatment / B3 Package",  price: "$60",         duration: "60 min",  durationMins: 60  },
       { id: "split-end",     label: "Split End Repairing",        price: "$40 – $100",  duration: "45 min",  durationMins: 45  },
     ],
   },

@@ -8,7 +8,7 @@ const CATEGORIES = [
     label: "Hair Cut & Style",
     priceRange: "$30 – $85",
     services: [
-      { name: "Women's Haircut",                 price: "$65"  },
+      { name: "Women's Haircut",                 price: "$70"  },
       { name: "Men's Haircut",                   price: "$35"  },
       { name: "Children's Haircut",              price: "$30"  },
       { name: "Blow Dry",                        price: "$40"  },
@@ -58,7 +58,7 @@ const CATEGORIES = [
     services: [
       { name: "Moroccan Oil Treatment",          price: "$30"  },
       { name: "Aveda Dry or Damage Remedy",      price: "$30 – $45" },
-      { name: "B3 Treatment or B3 Package",      price: "$40"  },
+      { name: "B3 Treatment or B3 Package",      price: "$60"  },
       { name: "Split End Repairing",             price: "$40 – $100" },
     ],
   },
