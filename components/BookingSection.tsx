@@ -79,6 +79,17 @@ const TIME_TO_HOUR: Record<string, number> = {
   "3:00 PM": 15, "4:00 PM": 16, "5:00 PM": 17, "6:00 PM": 18,
 };
 
+// Slots available per day of week (0=Sun … 6=Sat). null = closed.
+const SCHEDULE: Record<number, string[] | null> = {
+  0: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"],               // Sun 11–5
+  1: null,                                                                                   // Mon — Closed
+  2: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"], // Tue 11–7
+  3: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"], // Wed 11–7
+  4: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"], // Thu 11–7
+  5: ["10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"], // Fri 10–7
+  6: ["10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"], // Sat 10–7
+};
+
 const TIME_SLOTS = [
   "9:00 AM", "10:00 AM", "11:00 AM",
   "12:00 PM", "1:00 PM", "2:00 PM",
@@ -439,20 +450,24 @@ function CalendarPicker({
           {days.map((day, i) => {
             if (!day) return <div key={`empty-${i}`} />;
             const isPast = day < today;
+            const isClosed = SCHEDULE[day.getDay()] === null;
+            const isUnavailable = isPast || isClosed;
             const isSelected = selected && isSameDay(day, selected);
             const isToday = isSameDay(day, today);
             return (
               <motion.button
                 key={day.toISOString()}
-                whileHover={!isPast ? { scale: 1.12 } : {}}
-                whileTap={!isPast ? { scale: 0.96 } : {}}
-                onClick={() => !isPast && onSelect(day)}
-                disabled={isPast}
+                whileHover={!isUnavailable ? { scale: 1.12 } : {}}
+                whileTap={!isUnavailable ? { scale: 0.96 } : {}}
+                onClick={() => !isUnavailable && onSelect(day)}
+                disabled={isUnavailable}
+                title={isClosed ? "Closed" : undefined}
                 className={clsx(
                   "aspect-square flex items-center justify-center rounded-full text-sm font-sans transition-all duration-200 mx-auto w-9 h-9",
-                  isPast && "text-light-gray cursor-not-allowed",
-                  !isPast && !isSelected && "hover:bg-gold-light text-charcoal cursor-pointer",
-                  isToday && !isSelected && "border-2 border-charcoal text-charcoal font-semibold",
+                  isUnavailable && "text-light-gray cursor-not-allowed",
+                  isClosed && !isPast && "line-through decoration-light-gray/60",
+                  !isUnavailable && !isSelected && "hover:bg-gold-light text-charcoal cursor-pointer",
+                  isToday && !isSelected && !isUnavailable && "border-2 border-charcoal text-charcoal font-semibold",
                   isSelected && "bg-charcoal text-cream font-medium shadow-md"
                 )}
               >
@@ -488,6 +503,9 @@ function TimePicker({
   // Block any slot within 30 minutes of now
   const currentMinutes = now.getHours() * 60 + now.getMinutes() + 30;
 
+  // Only show slots for the selected day's schedule
+  const daySlots = selectedDate ? (SCHEDULE[selectedDate.getDay()] ?? TIME_SLOTS) : TIME_SLOTS;
+
   return (
     <div className="max-w-md mx-auto">
       <h3 className="font-serif text-2xl font-semibold text-charcoal mb-2 text-center">
@@ -497,7 +515,7 @@ function TimePicker({
         {slotsLoading ? "Checking availability…" : "Tap a slot to confirm your preferred time"}
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {TIME_SLOTS.map((t) => {
+        {daySlots.map((t) => {
           const booked = takenSlots.has(t);
           const past = isToday && TIME_TO_HOUR[t] * 60 <= currentMinutes;
           const disabled = booked || past || slotsLoading;
