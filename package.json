@@ -12,6 +12,8 @@
     "@mediapipe/tasks-vision": "^0.10.14",
     "@react-three/drei": "^9.115.0",
     "@react-three/fiber": "^8.17.10",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "@tensorflow-models/body-pix": "^2.2.1",
     "@tensorflow/tfjs-backend-webgl": "^4.22.0",
     "@tensorflow/tfjs-converter": "^4.22.0",

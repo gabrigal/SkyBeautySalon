@@ -110,7 +110,7 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-const N8N_WEBHOOK = "https://gabrigal.app.n8n.cloud/webhook/sky-beauty-booking";
+const N8N_WEBHOOK = "/api/book";
 const N8N_AVAILABILITY = "https://gabrigal.app.n8n.cloud/webhook/sky-beauty-availability";
 
 interface BookingState {
