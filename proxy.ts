@@ -14,7 +14,10 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
+  // Matches /dashboard and /dashboard/* but explicitly skips /dashboard/login
+  // to prevent redirect loops when an unauthenticated user reaches the login page.
   matcher: [
-    '/dashboard/:path*',
+    '/dashboard',
+    '/dashboard/((?!login(?:/|$)).+)',
   ],
 };
