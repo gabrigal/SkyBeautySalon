@@ -133,8 +133,16 @@ export async function markNeedsReconciliation(
 }
 
 /**
- * Looks up an appointment by raw management token (hashes it first).
- * Returns null if not found — callers must handle 404.
+ * Looks up an appointment by raw management token.
+ *
+ * Checks two token sources in order:
+ *   1. appointment_management_tokens table (new — reminder tokens, future purposes)
+ *      Validates: not revoked, not expired, appointment is actionable
+ *   2. appointments.management_token_hash (legacy — original confirmation tokens)
+ *      Validates: appointment is actionable (booked or pending)
+ *
+ * Returns null if not found, expired, revoked, or appointment is no longer actionable.
+ * Callers receive a consistent null — no leakage of whether a token ever existed.
  */
 export async function getAppointmentByToken(
   supabase: Supabase,
@@ -142,11 +150,40 @@ export async function getAppointmentByToken(
 ): Promise<Appointment | null> {
   const tokenHash = hashToken(rawToken);
 
+  // ── 1. New appointment_management_tokens table ────────────────────────────
+  const { data: tokenRecord } = await supabase
+    .from('appointment_management_tokens')
+    .select('*, appointments(*, customers(*))')
+    .eq('token_hash', tokenHash)
+    .is('revoked_at', null)
+    .maybeSingle();
+
+  if (tokenRecord) {
+    if (tokenRecord.expires_at && new Date(tokenRecord.expires_at) < new Date()) {
+      return null; // expired
+    }
+    const appt = tokenRecord.appointments as Appointment | null;
+    if (!appt) return null;
+    // Tokens are invalid once the appointment reaches a terminal state
+    if (['completed', 'cancelled', 'no_show'].includes(appt.appointment_status)) {
+      return null;
+    }
+    return appt;
+  }
+
+  // ── 2. Legacy management_token_hash on appointments table ─────────────────
   const { data } = await supabase
     .from('appointments')
     .select('*, customers(*)')
     .eq('management_token_hash', tokenHash)
     .maybeSingle();
+
+  if (!data) return null;
+
+  // Legacy tokens are also invalid after terminal states
+  if (['completed', 'cancelled', 'no_show'].includes(data.appointment_status)) {
+    return null;
+  }
 
   return data ?? null;
 }
@@ -225,6 +262,48 @@ export async function confirmReschedule(
 
   if (error) throw new Error(`Failed to confirm reschedule: ${error.message}`);
   void oldStart; // oldStart is stored via original_appointment_at in try_reserve_reschedule_slot
+}
+
+/**
+ * Marks a booked appointment as completed by staff.
+ * Only transitions from 'booked' — other states are rejected silently (no rows updated).
+ */
+export async function completeAppointment(
+  supabase: Supabase,
+  appointmentId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('appointments')
+    .update({
+      appointment_status: 'completed',
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', appointmentId)
+    .eq('appointment_status', 'booked');
+
+  if (error) throw new Error(`Failed to complete appointment: ${error.message}`);
+}
+
+/**
+ * Marks a booked appointment as no-show by staff.
+ * Only transitions from 'booked' — other states are rejected silently.
+ */
+export async function markNoShow(
+  supabase: Supabase,
+  appointmentId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('appointments')
+    .update({
+      appointment_status: 'no_show',
+      no_show_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', appointmentId)
+    .eq('appointment_status', 'booked');
+
+  if (error) throw new Error(`Failed to mark no-show: ${error.message}`);
 }
 
 /**

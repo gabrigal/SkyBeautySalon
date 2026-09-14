@@ -58,11 +58,11 @@ export default async function AppointmentsPage({ searchParams }: Props) {
   const totalPages = Math.ceil((count ?? 0) / pageSize);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <h1 className="text-2xl font-serif text-[#000000] mb-6">Appointments</h1>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      {/* Filters — horizontally scrollable on mobile */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:overflow-visible scrollbar-none">
         {(['all', 'booked', 'completed', 'cancelled', 'pending', 'no_show'] as const).map(s => (
           <Link
             key={s}
@@ -79,16 +79,16 @@ export default async function AppointmentsPage({ searchParams }: Props) {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#DDDDDD] overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white border border-[#DDDDDD] overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="bg-[#F8F8F8] border-b border-[#DDDDDD]">
             <tr>
               <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Customer</th>
-              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Service</th>
-              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Stylist</th>
+              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal hidden sm:table-cell">Service</th>
+              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal hidden md:table-cell">Stylist</th>
               <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Date & Time</th>
               <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Status</th>
-              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal">Booked</th>
+              <th className="text-left text-[10px] tracking-widest uppercase text-[#777777] px-4 py-3 font-normal hidden lg:table-cell">Booked</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EEEEEE]">
@@ -116,27 +116,29 @@ export default async function AppointmentsPage({ searchParams }: Props) {
                         {customer ? `${customer.first_name} ${customer.last_name}` : 'Unknown'}
                       </Link>
                       {customer?.email && (
-                        <p className="text-xs text-[#777777]">{customer.email}</p>
+                        <p className="text-xs text-[#777777] hidden sm:block">{customer.email}</p>
                       )}
+                      {/* Service shown inline on mobile only */}
+                      <p className="text-xs text-[#777777] sm:hidden mt-0.5">{appt.service}</p>
                     </td>
-                    <td className="px-4 py-3 text-[#000000]">{appt.service}</td>
-                    <td className="px-4 py-3 text-[#777777]">{appt.stylist ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#000000] hidden sm:table-cell">{appt.service}</td>
+                    <td className="px-4 py-3 text-[#777777] hidden md:table-cell">{appt.stylist ?? '—'}</td>
                     <td className="px-4 py-3">
                       <span className="text-[#000000]">{displayDate}</span>
-                      <span className="text-[#777777] ml-1">{displayTime}</span>
+                      <span className="text-[#777777] block text-xs sm:inline sm:ml-1">{displayTime}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2 py-0.5 text-[10px] tracking-widest uppercase font-medium ${STATUS_COLORS[status]}`}>
                         {STATUS_LABELS[status]}
                       </span>
                       {appt.sync_status === 'failed' && (
-                        <span className="ml-1 text-[10px] text-red-500 tracking-widest uppercase">sync failed</span>
+                        <span className="block mt-0.5 text-[10px] text-red-500 tracking-widest uppercase">sync failed</span>
                       )}
                       {appt.sync_status === 'needs_reconciliation' && (
-                        <span className="ml-1 text-[10px] text-yellow-600 tracking-widest uppercase">reconciling</span>
+                        <span className="block mt-0.5 text-[10px] text-yellow-600 tracking-widest uppercase">reconciling</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[#777777] text-xs">{bookedDate}</td>
+                    <td className="px-4 py-3 text-[#777777] text-xs hidden lg:table-cell">{bookedDate}</td>
                   </tr>
                 );
               })

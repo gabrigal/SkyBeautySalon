@@ -8,6 +8,8 @@ import {
   markNeedsReconciliation,
 } from '@/lib/db/appointments';
 import { logEvent } from '@/lib/db/events';
+import { scheduleReminder } from '@/lib/db/automationJobs';
+import { cancelCustomerRetentionJobs } from '@/lib/db/retentionJobs';
 
 const BUSINESS_ID = process.env.SALON_BUSINESS_ID!;
 const N8N_BOOKING_WEBHOOK_URL = process.env.N8N_BOOKING_WEBHOOK_URL!;
@@ -200,6 +202,16 @@ export async function POST(request: NextRequest) {
       eventType: 'appointment_created',
       metadata: { service, stylist, appointment_at: appointmentAt, gcal_event_id: calendarEventId },
     });
+    // Schedule 24h reminder if appointment is more than 24h away
+    await scheduleReminder(supabase, {
+      appointmentId: appointment.id,
+      businessId: BUSINESS_ID,
+      customerId: customer.id,
+      appointmentAt,
+    });
+
+    // Cancel any pending rebooking/reactivation jobs — customer just rebooked
+    await cancelCustomerRetentionJobs(supabase, customer.id, BUSINESS_ID);
 
     return NextResponse.json({ success: true, appointmentId: appointment.id });
 

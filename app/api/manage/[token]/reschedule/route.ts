@@ -7,6 +7,7 @@ import {
   markNeedsReconciliation,
 } from '@/lib/db/appointments';
 import { logEvent } from '@/lib/db/events';
+import { updateReminderSchedule } from '@/lib/db/automationJobs';
 
 const N8N_RESCHEDULE_WEBHOOK_URL = process.env.N8N_RESCHEDULE_WEBHOOK_URL;
 const BUSINESS_ID = process.env.SALON_BUSINESS_ID!;
@@ -119,6 +120,7 @@ export async function POST(
   if (!appointment.external_booking_id || !N8N_RESCHEDULE_WEBHOOK_URL) {
     // No Calendar event to update — complete in DB only
     await confirmReschedule(supabase, appointment.id, newStartISO, newEndISO, oldStart);
+    await updateReminderSchedule(supabase, appointment.id, newStartISO);
     await logEvent(supabase, {
       businessId: BUSINESS_ID, appointmentId: appointment.id,
       customerId: customer?.id ?? null, eventType: 'appointment_rescheduled',
@@ -170,6 +172,7 @@ export async function POST(
 
     // ── Success ─────────────────────────────────────────────────────────────
     await confirmReschedule(supabase, appointment.id, newStartISO, newEndISO, oldStart);
+    await updateReminderSchedule(supabase, appointment.id, newStartISO);
     await logEvent(supabase, {
       businessId: BUSINESS_ID, appointmentId: appointment.id,
       customerId: customer?.id ?? null, eventType: 'appointment_rescheduled',

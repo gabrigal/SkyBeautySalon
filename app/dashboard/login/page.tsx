@@ -4,10 +4,25 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
+function makeAuthCookiesSessionOnly() {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie.split(';').forEach(raw => {
+    const eq = raw.indexOf('=');
+    if (eq === -1) return;
+    const name = raw.slice(0, eq).trim();
+    const value = raw.slice(eq + 1).trim();
+    if (name.startsWith('sb-') && name.includes('-auth-token')) {
+      // Re-set without max-age → browser treats it as a session cookie
+      document.cookie = `${name}=${value}; path=/; SameSite=Lax${secure}`;
+    }
+  });
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +41,10 @@ export default function LoginPage() {
       setError('Invalid email or password.');
       setLoading(false);
       return;
+    }
+
+    if (!rememberMe) {
+      makeAuthCookiesSessionOnly();
     }
 
     router.push('/dashboard');
@@ -73,6 +92,22 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 className="w-full border border-[#DDDDDD] px-4 py-2.5 text-sm text-[#000000] focus:outline-none focus:border-[#000000] bg-white"
               />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-3.5 h-3.5 border border-[#DDDDDD] accent-black cursor-pointer"
+              />
+              <label
+                htmlFor="rememberMe"
+                className="text-xs text-[#777777] tracking-wide cursor-pointer select-none"
+              >
+                Remember me on this device
+              </label>
             </div>
 
             {error && (

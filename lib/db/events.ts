@@ -11,6 +11,9 @@ export type EventType =
   | 'review_request_sent'
   | 'appointment_completed'
   | 'no_show_marked'
+  | 'reminder_sent'
+  | 'rebooking_reminder_sent'
+  | 'reactivation_sent'
   | 'automation_triggered'
   | 'automation_failed';
 

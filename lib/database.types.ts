@@ -3,6 +3,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type AppointmentStatus = 'pending' | 'booked' | 'completed' | 'cancelled' | 'no_show';
+export type AutomationJobStatus = 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled';
+export type AutomationJobType =
+  | 'appointment_reminder_24h'
+  | 'review_request'
+  | 'rebooking_reminder'
+  | 'reactivation'
+  | 'waitlist_notification';
 export type SyncStatus = 'pending' | 'synced' | 'failed' | 'needs_reconciliation';
 export type SyncOperation = 'calendar_create' | 'calendar_cancel' | 'calendar_reschedule';
 export type BookingSource = 'online_booking' | 'historical_import' | 'manual';
@@ -76,6 +83,8 @@ export interface Appointment {
   booked_at: string;
   updated_at: string;
   cancelled_at: string | null;
+  completed_at: string | null;
+  no_show_at: string | null;
   rescheduled_at: string | null;
   original_appointment_at: string | null;
   booking_source: BookingSource;
@@ -84,6 +93,44 @@ export interface Appointment {
   notes: string | null;
   created_at: string;
   customers?: Customer;
+}
+
+export interface AutomationJob {
+  id: string;
+  business_id: string;
+  appointment_id: string | null;
+  customer_id: string | null;
+  job_type: AutomationJobType;
+  scheduled_for: string;
+  status: AutomationJobStatus;
+  attempts: number;
+  claimed_at: string | null;
+  sent_at: string | null;
+  last_error: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceRetentionRule {
+  id: string;
+  business_id: string;
+  service_name: string;
+  rebook_after_days: number;
+  reactivation_after_days: number | null;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppointmentManagementToken {
+  id: string;
+  appointment_id: string;
+  token_hash: string;
+  purpose: 'confirmation' | 'reminder';
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
 }
 
 export interface AppointmentEvent {
@@ -142,9 +189,35 @@ export type Database = {
         Update: Partial<Omit<AppointmentEvent, 'id' | 'appointments' | 'customers'>>;
         Relationships: [];
       };
+      automation_jobs: {
+        Row: AutomationJob;
+        Insert: Omit<AutomationJob, 'id' | 'created_at' | 'updated_at' | 'attempts'> & Partial<Pick<AutomationJob, 'id' | 'created_at' | 'updated_at' | 'attempts'>>;
+        Update: Partial<Omit<AutomationJob, 'id'>>;
+        Relationships: [];
+      };
+      appointment_management_tokens: {
+        Row: AppointmentManagementToken;
+        Insert: Omit<AppointmentManagementToken, 'id' | 'created_at'> & Partial<Pick<AppointmentManagementToken, 'id' | 'created_at'>>;
+        Update: Partial<Omit<AppointmentManagementToken, 'id'>>;
+        Relationships: [];
+      };
+      service_retention_rules: {
+        Row: ServiceRetentionRule;
+        Insert: Omit<ServiceRetentionRule, 'id' | 'created_at' | 'updated_at'> & Partial<Pick<ServiceRetentionRule, 'id' | 'created_at' | 'updated_at'>>;
+        Update: Partial<Omit<ServiceRetentionRule, 'id'>>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      claim_automation_jobs: {
+        Args: { p_job_type: string; p_limit?: number };
+        Returns: AutomationJob[];
+      };
+      claim_retention_jobs: {
+        Args: { p_job_type: string; p_limit?: number };
+        Returns: AutomationJob[];
+      };
       try_reserve_reschedule_slot: {
         Args: {
           p_appointment_id: string;
