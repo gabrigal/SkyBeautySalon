@@ -458,7 +458,7 @@ export default function NewAppointmentForm() {
                     onChange={() => setBookingSource(opt.value)}
                     className="accent-black"
                   />
-                  <span className="text-sm">{opt.label}</span>
+                  <span className="text-sm text-[#000000]">{opt.label}</span>
                 </label>
               ))}
             </div>
