@@ -14,7 +14,7 @@ export interface CreateAppointmentInput {
   appointmentEndAt: string; // ISO string (UTC)
   durationMinutes: number;
   priceCents?: number | null;
-  bookingSource?: 'online_booking' | 'historical_import' | 'manual';
+  bookingSource?: 'online_booking' | 'historical_import' | 'manual' | 'phone' | 'walk_in' | 'instagram' | 'other';
   notes?: string | null;
   externalBookingId?: string | null; // for historical imports with known GCal ID
 }

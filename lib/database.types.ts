@@ -12,7 +12,7 @@ export type AutomationJobType =
   | 'waitlist_notification';
 export type SyncStatus = 'pending' | 'synced' | 'failed' | 'needs_reconciliation';
 export type SyncOperation = 'calendar_create' | 'calendar_cancel' | 'calendar_reschedule';
-export type BookingSource = 'online_booking' | 'historical_import' | 'manual';
+export type BookingSource = 'online_booking' | 'historical_import' | 'manual' | 'phone' | 'walk_in' | 'instagram' | 'other';
 export type CustomerSource = 'online_booking' | 'historical_import' | 'manual';
 export type BusinessStatus = 'active' | 'inactive';
 export type UserRole = 'staff' | 'go_ai_admin';

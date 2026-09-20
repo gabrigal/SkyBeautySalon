@@ -59,7 +59,15 @@ export default async function AppointmentsPage({ searchParams }: Props) {
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-serif text-[#000000] mb-6">Appointments</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-serif text-[#000000]">Appointments</h1>
+        <Link
+          href="/dashboard/appointments/new"
+          className="bg-[#000000] text-white text-[10px] tracking-widest uppercase px-4 py-2 hover:bg-[#333333] transition-colors"
+        >
+          + New Appointment
+        </Link>
+      </div>
 
       {/* Filters — horizontally scrollable on mobile */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:overflow-visible scrollbar-none">

@@ -141,7 +141,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-serif text-[#000000] mb-6 md:mb-8">Overview</h1>
+      <div className="flex items-center justify-between mb-6 md:mb-8">
+        <h1 className="text-2xl font-serif text-[#000000]">Overview</h1>
+        <Link
+          href="/dashboard/appointments/new"
+          className="bg-[#000000] text-white text-[10px] tracking-widest uppercase px-4 py-2 hover:bg-[#333333] transition-colors"
+        >
+          + New Appointment
+        </Link>
+      </div>
 
       {/* Core stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
