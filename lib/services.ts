@@ -114,3 +114,65 @@ export const TIME_SLOTS: string[] = [
   "12:00 PM", "1:00 PM", "2:00 PM",
   "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
 ];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-stylist schedule overrides
+// Omit a stylist entry to fall back to the global SCHEDULE above.
+// closeHour: the latest end-time allowed for that day (24h). Slots where
+//   startHour + durationMins/60 > closeHour are hidden from the picker.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface StylistConfig {
+  schedule: Record<number, string[] | null>;
+  closeHour: Partial<Record<number, number>>;
+}
+
+export const STYLIST_SCHEDULE: Record<string, StylistConfig> = {
+  luis: {
+    schedule: {
+      0: null,  // Sun — unavailable
+      1: null,  // Mon — unavailable
+      2: null,  // Tue — unavailable
+      3: null,  // Wed — unavailable
+      4: null,  // Thu — unavailable
+      5: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"],  // Fri 11–5
+      6: ["11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"],  // Sat 11–5
+    },
+    closeHour: { 5: 17, 6: 17 },
+  },
+};
+
+/**
+ * Returns available time slots for a stylist on a given day of week.
+ * Falls back to the global SCHEDULE for stylists not in STYLIST_SCHEDULE.
+ * When durationMins is supplied, slots where the service would end after the
+ * stylist's closing hour are excluded.
+ */
+export function getStylistSlots(
+  stylistId: string,
+  dayOfWeek: number,
+  durationMins?: number
+): string[] {
+  const config = STYLIST_SCHEDULE[stylistId];
+  const base: string[] = config
+    ? [...(config.schedule[dayOfWeek] ?? [])]
+    : [...(SCHEDULE[dayOfWeek] ?? [])];
+
+  const closeHour = config?.closeHour[dayOfWeek];
+  if (!durationMins || closeHour === undefined) return base;
+
+  return base.filter(slot => {
+    const h = TIME_TO_HOUR[slot];
+    return h !== undefined && h + durationMins / 60 <= closeHour;
+  });
+}
+
+/**
+ * Returns true if the stylist has any available slots on the given day of week.
+ * Ignores duration — used only to decide whether a calendar date is selectable.
+ */
+export function isStylistAvailableOnDay(stylistId: string, dayOfWeek: number): boolean {
+  const config = STYLIST_SCHEDULE[stylistId];
+  if (config) return (config.schedule[dayOfWeek] ?? []).length > 0;
+  return SCHEDULE[dayOfWeek] !== null;
+}

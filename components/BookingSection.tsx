@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-import { SERVICE_CATEGORIES, ALL_SERVICES, TIME_TO_HOUR, SCHEDULE, TIME_SLOTS } from "@/lib/services";
+import { SERVICE_CATEGORIES, ALL_SERVICES, TIME_TO_HOUR, SCHEDULE, TIME_SLOTS, getStylistSlots, isStylistAvailableOnDay } from "@/lib/services";
 
 const STYLISTS = [
   { id: "joann", label: "Joann", callOnly: false },
@@ -268,9 +268,11 @@ function StylistPicker({
 function CalendarPicker({
   selected,
   onSelect,
+  stylistId,
 }: {
   selected: Date | null;
   onSelect: (d: Date) => void;
+  stylistId?: string;
 }) {
   const today = useMemo(() => {
     const d = new Date();
@@ -357,7 +359,9 @@ function CalendarPicker({
           {days.map((day, i) => {
             if (!day) return <div key={`empty-${i}`} />;
             const isPast = day < today;
-            const isClosed = SCHEDULE[day.getDay()] === null;
+            const isClosed = stylistId
+              ? !isStylistAvailableOnDay(stylistId, day.getDay())
+              : SCHEDULE[day.getDay()] === null;
             const isUnavailable = isPast || isClosed;
             const isSelected = selected && isSameDay(day, selected);
             const isToday = isSameDay(day, today);
@@ -394,12 +398,16 @@ function TimePicker({
   takenSlots,
   slotsLoading,
   selectedDate,
+  stylistId,
+  durationMins,
 }: {
   selected: string | null;
   onSelect: (t: string) => void;
   takenSlots: Set<string>;
   slotsLoading: boolean;
   selectedDate: Date | null;
+  stylistId?: string;
+  durationMins?: number;
 }) {
   const now = new Date();
   const isToday =
@@ -410,8 +418,10 @@ function TimePicker({
   // Block any slot within 30 minutes of now
   const currentMinutes = now.getHours() * 60 + now.getMinutes() + 30;
 
-  // Only show slots for the selected day's schedule
-  const daySlots = selectedDate ? (SCHEDULE[selectedDate.getDay()] ?? TIME_SLOTS) : TIME_SLOTS;
+  // Slots for the selected day, respecting per-stylist schedule and duration cutoff
+  const daySlots = selectedDate
+    ? getStylistSlots(stylistId ?? '', selectedDate.getDay(), durationMins)
+    : TIME_SLOTS;
 
   return (
     <div className="max-w-md mx-auto">
@@ -808,6 +818,7 @@ export default function BookingSection() {
                     <CalendarPicker
                       selected={booking.date}
                       onSelect={(date) => setBooking((b) => ({ ...b, date }))}
+                      stylistId={booking.stylist ?? undefined}
                     />
                   )}
                   {step === 4 && (
@@ -817,6 +828,8 @@ export default function BookingSection() {
                       takenSlots={takenSlots}
                       slotsLoading={slotsLoading}
                       selectedDate={booking.date}
+                      stylistId={booking.stylist ?? undefined}
+                      durationMins={ALL_SERVICES.find(s => s.id === booking.service)?.durationMins}
                     />
                   )}
                   {step === 5 && (

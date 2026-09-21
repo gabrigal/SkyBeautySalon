@@ -10,7 +10,7 @@ import { logEvent } from '@/lib/db/events';
 import { scheduleReminder } from '@/lib/db/automationJobs';
 import { cancelCustomerRetentionJobs } from '@/lib/db/retentionJobs';
 import type { BookingSource } from '@/lib/database.types';
-import { TIME_TO_HOUR } from '@/lib/services';
+import { TIME_TO_HOUR, getStylistSlots } from '@/lib/services';
 
 const BUSINESS_ID = process.env.SALON_BUSINESS_ID!;
 const N8N_BOOKING_WEBHOOK_URL = process.env.N8N_BOOKING_WEBHOOK_URL!;
@@ -70,6 +70,16 @@ export async function POST(request: NextRequest) {
   const hour = TIME_TO_HOUR[time];
   if (hour === undefined) {
     return NextResponse.json({ error: 'Invalid time slot' }, { status: 400 });
+  }
+
+  // ── Validate time slot against stylist's schedule ──────────────────────────
+  const bookingDayOfWeek = new Date(`${date}T12:00:00`).getDay();
+  const validSlots = getStylistSlots(stylist, bookingDayOfWeek, durationMinutes ?? 60);
+  if (!validSlots.includes(time)) {
+    return NextResponse.json(
+      { error: 'That time is not available for the selected stylist.' },
+      { status: 400 }
+    );
   }
 
   // ── Build local ET datetime strings ───────────────────────────────────────

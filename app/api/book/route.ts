@@ -10,6 +10,7 @@ import {
 import { logEvent } from '@/lib/db/events';
 import { scheduleReminder } from '@/lib/db/automationJobs';
 import { cancelCustomerRetentionJobs } from '@/lib/db/retentionJobs';
+import { getStylistSlots } from '@/lib/services';
 
 const BUSINESS_ID = process.env.SALON_BUSINESS_ID!;
 const N8N_BOOKING_WEBHOOK_URL = process.env.N8N_BOOKING_WEBHOOK_URL!;
@@ -56,6 +57,19 @@ export async function POST(request: NextRequest) {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
     return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+  }
+
+  // ── Validate time slot against stylist's schedule ──────────────────────────
+  if (time && dateISO) {
+    const dayOfWeek = new Date(`${dateISO}T12:00:00`).getDay();
+    const durationMins = parseDurationMinutes(duration ?? '');
+    const validSlots = getStylistSlots(stylist, dayOfWeek, durationMins);
+    if (!validSlots.includes(time)) {
+      return NextResponse.json(
+        { error: 'That time is not available for the selected stylist.' },
+        { status: 400 }
+      );
+    }
   }
 
   // ── Convert local time to UTC (times come in as America/New_York local) ───
